@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import LogoutButton from '@/components/LogoutButton';
 
 export default function AdminLayout({
   children,
@@ -17,11 +18,11 @@ export default function AdminLayout({
               <span className="text-gray-400">|</span>
               <span className="text-gray-600">管理后台</span>
             </div>
-            <nav className="flex gap-6">
+            <nav className="flex gap-6 items-center">
               <Link href="/admin" className="text-gray-600 hover:text-primary">数据概览</Link>
               <Link href="/admin/packages" className="text-gray-600 hover:text-primary">快递管理</Link>
               <Link href="/admin/users" className="text-gray-600 hover:text-primary">用户管理</Link>
-              <Link href="/" className="text-gray-600 hover:text-primary">退出</Link>
+              <LogoutButton />
             </nav>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import LogoutButton from '@/components/LogoutButton';
 
 export default function UserLayout({
   children,
@@ -17,11 +18,11 @@ export default function UserLayout({
               <span className="text-gray-400">|</span>
               <span className="text-gray-600">用户中心</span>
             </div>
-            <nav className="flex gap-6">
+            <nav className="flex gap-6 items-center">
               <Link href="/user" className="text-gray-600 hover:text-primary">我的快递</Link>
               <Link href="/user/pickup" className="text-gray-600 hover:text-primary">取件</Link>
               <Link href="/user/history" className="text-gray-600 hover:text-primary">取件记录</Link>
-              <Link href="/" className="text-gray-600 hover:text-primary">退出</Link>
+              <LogoutButton />
             </nav>
           </div>
         </div>

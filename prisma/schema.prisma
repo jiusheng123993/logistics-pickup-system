@@ -7,27 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  USER
-  COURIER
-  ADMIN
-}
-
-enum PackageStatus {
-  PENDING
-  IN_STORAGE
-  PICKED_UP
-  EXPIRED
-  RETURNED
-}
-
 model User {
   id        String   @id @default(cuid())
   name      String
   phone     String   @unique
   email     String?  @unique
   password  String
-  role      UserRole @default(USER)
+  role      String   @default("USER")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -44,7 +30,7 @@ model Package {
   recipientPhone  String
   courierId       String?
   pickupCode      String
-  status          PackageStatus @default(PENDING)
+  status          String        @default("PENDING")
   storageLocation String?
   notes           String?
   arrivedAt       DateTime?

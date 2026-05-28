@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import LogoutButton from '@/components/LogoutButton';
 
 export default function CourierLayout({
   children,
@@ -17,10 +18,10 @@ export default function CourierLayout({
               <span className="text-gray-400">|</span>
               <span className="text-gray-600">快递员端</span>
             </div>
-            <nav className="flex gap-6">
+            <nav className="flex gap-6 items-center">
               <Link href="/courier" className="text-gray-600 hover:text-primary">我的派件</Link>
               <Link href="/courier/inbound" className="text-gray-600 hover:text-primary">快递入库</Link>
-              <Link href="/" className="text-gray-600 hover:text-primary">退出</Link>
+              <LogoutButton />
             </nav>
           </div>
         </div>
