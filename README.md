@@ -1,126 +1,182 @@
 # 物流快递取件系统
 
-一个功能完整的物流快递取件管理系统，支持用户、快递员和管理员三种角色。
-
-## 功能特性
-
-### 用户端
-- 我的快递 - 查看个人快递列表和状态
-- 快速取件 - 支持输入取件码和扫码取件
-- 取件记录 - 查看历史取件记录
-
-### 快递员端
-- 我的派件 - 查看派件列表和状态
-- 快递入库 - 扫码或手动录入快递信息，自动生成取件码
-
-### 管理后台
-- 数据概览 - 查看统计数据和趋势图表
-- 快递管理 - 管理所有快递信息
-- 用户管理 - 管理系统用户
+一个功能完整的物流快递取件管理系统，支持用户自助取件、快递员入库管理、管理员后台等功能。
 
 ## 技术栈
 
-- **前端框架**: Next.js 15 + React 19 + TypeScript
-- **样式方案**: Tailwind CSS
-- **数据库**: PostgreSQL + Prisma ORM
-- **认证方案**: NextAuth.js (待集成)
+- **框架**: Next.js 15
+- **语言**: TypeScript
+- **数据库**: SQLite (Prisma ORM)
+- **样式**: Tailwind CSS
+- **认证**: JWT
 
-## 项目结构
+## 功能特性
 
-```
-logistics-pickup-system/
-├── prisma/
-│   └── schema.prisma      # 数据库模型定义
-├── src/
-│   └── app/
-│       ├── (auth)/        # 认证相关页面
-│       ├── user/          # 用户端页面
-│       ├── courier/       # 快递员端页面
-│       ├── admin/         # 管理后台页面
-│       ├── layout.tsx     # 根布局
-│       ├── page.tsx       # 首页
-│       └── globals.css    # 全局样式
-├── package.json
-├── tsconfig.json
-└── README.md
-```
+### 用户功能
+- 用户注册/登录
+- 查看我的快递
+- 自助取件（输入取件码）
+- 查看取件历史
+
+### 快递员功能
+- 快递员注册/登录
+- 查看我的派件
+- 快递入库（生成取件码）
+
+### 管理员功能
+- 数据概览（统计信息）
+- 快递管理（查看/编辑/删除）
+- 用户管理（查看/编辑/删除）
 
 ## 快速开始
 
-### 前置要求
-
-- Node.js 18+ 
-- PostgreSQL 14+ (或使用Docker)
-
-### 安装依赖
+### 1. 安装依赖
 
 ```bash
 npm install
 ```
 
-### 数据库设置
-
-1. 创建 `.env` 文件并配置数据库连接：
-
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/logistics?schema=public"
-```
-
-2. 运行数据库迁移：
+### 2. 初始化数据库
 
 ```bash
-npx prisma migrate dev
+# 初始化数据库并插入测试数据
+npm run db:setup
 ```
 
-### 启动开发服务器
+或者分步执行：
+
+```bash
+# 生成 Prisma Client
+npm run db:generate
+
+# 推送数据库 schema
+npm run db:push
+
+# 运行 seed 脚本（创建测试数据）
+npm run db:seed
+```
+
+### 3. 启动开发服务器
 
 ```bash
 npm run dev
 ```
 
-访问 http://localhost:3000 查看应用。
+访问 [http://localhost:3000](http://localhost:3000) 查看应用。
 
-## 数据库模型
+## 测试账号
 
-### User (用户)
-- 支持三种角色：USER, COURIER, ADMIN
-- 关联快递和取件记录
+系统初始化后会创建以下测试账号：
 
-### Package (快递)
-- 运单号、收件人、取件码、状态等
-- 状态流转：PENDING → IN_STORAGE → PICKED_UP
+| 角色 | 手机号 | 密码 |
+|------|--------|------|
+| 管理员 | 13800000000 | admin123 |
+| 快递员 | 13800000001 | courier123 |
+| 用户 | 13800000002 | user123 |
 
-### Pickup (取件记录)
-- 记录每次取件操作
+## 项目结构
 
-### Notification (通知)
-- 系统通知和取件提醒
+```
+logistics-pickup-system/
+├── prisma/                 # Prisma 相关
+│   ├── schema.prisma      # 数据库 schema
+│   └── seed.ts            # 数据库种子脚本
+├── src/
+│   ├── app/
+│   │   ├── admin/         # 管理员页面
+│   │   ├── api/           # API 路由
+│   │   │   ├── auth/      # 认证 API
+│   │   │   ├── packages/  # 快递 API
+│   │   │   ├── pickups/   # 取件 API
+│   │   │   ├── users/     # 用户 API
+│   │   │   └── stats/     # 统计 API
+│   │   ├── courier/       # 快递员页面
+│   │   ├── login/         # 登录页面
+│   │   ├── register/      # 注册页面
+│   │   ├── user/          # 用户页面
+│   │   ├── globals.css    # 全局样式
+│   │   ├── layout.tsx     # 根布局
+│   │   └── page.tsx       # 首页
+│   ├── components/        # 组件
+│   ├── lib/               # 工具库
+│   │   ├── api.ts         # API 响应工具
+│   │   ├── api-client.ts  # 前端 API 客户端
+│   │   ├── auth.ts        # 认证工具
+│   │   ├── prisma.ts      # Prisma 客户端
+│   │   ├── server-utils.ts # 服务端工具
+│   │   └── session.ts     # 会话管理（JWT）
+│   └── types/             # TypeScript 类型
+├── .env.example           # 环境变量示例
+└── package.json
+```
+
+## API 文档
+
+### 认证 API
+
+- `POST /api/auth/login` - 用户登录
+- `POST /api/auth/register` - 用户注册
+- `POST /api/auth/logout` - 用户登出
+
+### 快递 API
+
+- `GET /api/packages` - 获取快递列表
+- `POST /api/packages` - 创建快递（入库）
+- `POST /api/packages/pickup` - 取件
+
+### 取件记录 API
+
+- `GET /api/pickups` - 获取取件历史
+
+### 用户 API
+
+- `GET /api/users` - 获取用户列表（仅管理员）
+- `POST /api/users` - 创建用户（仅管理员）
+
+### 统计 API
+
+- `GET /api/stats` - 获取统计数据（仅管理员）
+
+## 安全特性
+
+- JWT 认证，防止会话劫持
+- 密码使用 bcrypt 加密存储
+- 基于角色的权限控制
+- API 输入验证
 
 ## 开发说明
 
-### 分支策略
+### 环境变量
 
-- `main` - 生产环境分支
-- `develop` - 开发集成分支
-- `feature/*` - 功能分支
-- `fix/*` - 修复分支
+复制 `.env.example` 为 `.env` 并根据需要修改：
 
-### 提交规范
+```env
+# 数据库连接
+DATABASE_URL="file:./dev.db"
 
-使用约定式提交格式：
-
-```
-type(scope): description
+# JWT 密钥（生产环境请使用强密钥）
+JWT_SECRET="your-secret-key-change-in-production"
 ```
 
-类型示例：
-- `feat`: 新功能
-- `fix`: 修复
-- `docs`: 文档
-- `style`: 格式调整
-- `refactor`: 重构
-- `test`: 测试
-- `chore`: 构建/工具
+### 数据库操作
+
+```bash
+# 修改 schema 后更新数据库
+npm run db:push
+
+# 重新生成 Prisma Client
+npm run db:generate
+```
+
+## 构建和部署
+
+```bash
+# 构建生产版本
+npm run build
+
+# 启动生产服务器
+npm start
+```
 
 ## 许可证
 

@@ -1,26 +1,53 @@
 'use client';
 
-import { useState } from 'react';
-
-const mockStats = {
-  totalPackages: 156,
-  pendingPackages: 23,
-  pickedUpToday: 45,
-  activeUsers: 89,
-};
-
-const weeklyData = [
-  { day: '周一', inbound: 25, picked: 20 },
-  { day: '周二', inbound: 30, picked: 28 },
-  { day: '周三', inbound: 28, picked: 25 },
-  { day: '周四', inbound: 35, picked: 32 },
-  { day: '周五', inbound: 40, picked: 38 },
-  { day: '周六', inbound: 50, picked: 45 },
-  { day: '周日', inbound: 38, picked: 35 },
-];
+import { useState, useEffect } from 'react';
+import { statsApi } from '@/lib/api-client';
 
 export default function AdminDashboard() {
-  const [stats] = useState(mockStats);
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      setLoading(true);
+      const response = await statsApi.getStats();
+      
+      if (response.success && response.data) {
+        setStats(response.data);
+      } else {
+        setError(response.error || '加载失败');
+      }
+    } catch (err) {
+      setError('加载失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <p className="text-gray-500">加载中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -49,9 +76,9 @@ export default function AdminDashboard() {
         <div className="card">
           <h3 className="text-lg font-semibold mb-4">本周数据趋势</h3>
           <div className="space-y-3">
-            {weeklyData.map((item) => (
-              <div key={item.day} className="flex items-center gap-4">
-                <div className="w-12 text-sm text-gray-600">{item.day}</div>
+            {stats.weeklyData?.map((item: any, index: number) => (
+              <div key={index} className="flex items-center gap-4">
+                <div className="w-12 text-sm text-gray-500">{item.day}</div>
                 <div className="flex-1 flex gap-2">
                   <div className="flex-1">
                     <div className="flex justify-between text-xs mb-1">
@@ -61,7 +88,7 @@ export default function AdminDashboard() {
                     <div className="h-3 bg-blue-100 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-blue-500 rounded-full"
-                        style={{ width: `${(item.inbound / 50) * 100}%` }}
+                        style={{ width: `${Math.min((item.inbound / 50) * 100, 100)}%` }}
                       />
                     </div>
                   </div>
@@ -73,7 +100,7 @@ export default function AdminDashboard() {
                     <div className="h-3 bg-green-100 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-green-500 rounded-full"
-                        style={{ width: `${(item.picked / 50) * 100}%` }}
+                        style={{ width: `${Math.min((item.picked / 50) * 100, 100)}%` }}
                       />
                     </div>
                   </div>
@@ -89,28 +116,37 @@ export default function AdminDashboard() {
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">待入库</span>
-                <span className="font-semibold">23</span>
+                <span className="font-semibold">{stats.statusDistribution?.PENDING || 0}</span>
               </div>
               <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-yellow-500 rounded-full" style={{ width: '15%' }} />
+                <div 
+                  className="h-full bg-yellow-500 rounded-full" 
+                  style={{ width: `${Math.min(((stats.statusDistribution?.PENDING || 0) / Math.max(stats.totalPackages, 1)) * 100, 100)}%` }} 
+                />
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">待取件</span>
-                <span className="font-semibold">45</span>
+                <span className="font-semibold">{stats.statusDistribution?.IN_STORAGE || 0}</span>
               </div>
               <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-blue-500 rounded-full" style={{ width: '29%' }} />
+                <div 
+                  className="h-full bg-blue-500 rounded-full" 
+                  style={{ width: `${Math.min(((stats.statusDistribution?.IN_STORAGE || 0) / Math.max(stats.totalPackages, 1)) * 100, 100)}%` }} 
+                />
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">已取件</span>
-                <span className="font-semibold">88</span>
+                <span className="font-semibold">{stats.statusDistribution?.PICKED_UP || 0}</span>
               </div>
               <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-green-500 rounded-full" style={{ width: '56%' }} />
+                <div 
+                  className="h-full bg-green-500 rounded-full" 
+                  style={{ width: `${Math.min(((stats.statusDistribution?.PICKED_UP || 0) / Math.max(stats.totalPackages, 1)) * 100, 100)}%` }} 
+                />
               </div>
             </div>
           </div>

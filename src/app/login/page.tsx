@@ -2,43 +2,71 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
+/**
+ * 用户登录页面
+ * 
+ * 功能：用户登录，验证凭据后跳转
+ */
 export default function LoginPage() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'USER' | 'COURIER' | 'ADMIN'>('USER');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
 
+  /**
+   * 处理登录表单提交
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
+      console.log('===== 登录流程开始 =====');
+      console.log('1. 开始登录请求...', { phone });
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password, role }),
+        body: JSON.stringify({ phone, password }),
       });
 
+      console.log('2. 登录响应状态:', response.status);
       const data = await response.json();
+      console.log('3. 登录响应数据:', data);
 
       if (!response.ok) {
         throw new Error(data.error || '登录失败');
       }
 
+      // 根据用户角色跳转
       const userRole = data.role;
+      let targetPath = '/';
       if (userRole === 'USER') {
-        router.push('/user');
+        targetPath = '/user';
       } else if (userRole === 'COURIER') {
-        router.push('/courier');
+        targetPath = '/courier';
       } else {
-        router.push('/admin');
+        targetPath = '/admin';
       }
-      router.refresh();
+      
+      console.log('4. 确定目标路径:', targetPath);
+      console.log('5. 当前 cookie:', document.cookie);
+      console.log('6. 执行跳转...');
+      
+      setError(`登录成功！正在跳转到 ${targetPath}...`);
+      
+      // 延迟一下跳转，让用户看到成功消息
+      setTimeout(() => {
+        console.log('7. 执行 window.location.href =', targetPath);
+        window.location.href = targetPath;
+      }, 500);
+      
     } catch (err) {
+      console.error('===== 登录错误 =====', err);
       setError(err instanceof Error ? err.message : '登录失败');
     } finally {
       setLoading(false);
@@ -53,33 +81,12 @@ export default function LoginPage() {
             登录系统
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            请选择您的角色并登录
+            请输入您的凭据登录
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">角色</label>
-              <div className="flex gap-4 mt-2">
-                {[
-                  { value: 'USER', label: '用户' },
-                  { value: 'COURIER', label: '快递员' },
-                  { value: 'ADMIN', label: '管理员' },
-                ].map((r) => (
-                  <label key={r.value} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="role"
-                      value={r.value}
-                      checked={role === r.value}
-                      onChange={() => setRole(r.value as any)}
-                      className="text-primary focus:ring-primary"
-                    />
-                    <span>{r.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+            {/* 手机号 */}
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
                 手机号
@@ -95,6 +102,7 @@ export default function LoginPage() {
                 placeholder="请输入手机号"
               />
             </div>
+            {/* 密码 */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 密码
@@ -112,11 +120,14 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {/* 错误提示 */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
+
+          {/* 登录按钮 */}
           <div>
             <button
               type="submit"
@@ -125,6 +136,16 @@ export default function LoginPage() {
             >
               {loading ? '登录中...' : '登录'}
             </button>
+          </div>
+
+          {/* 注册链接 */}
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              没有账户？{' '}
+              <Link href="/register" className="font-medium text-primary hover:text-blue-600">
+                立即注册
+              </Link>
+            </p>
           </div>
         </form>
       </div>

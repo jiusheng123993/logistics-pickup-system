@@ -2,16 +2,40 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { packagesApi } from '@/lib/api-client';
 
 export default function PickupPage() {
   const [pickupCode, setPickupCode] = useState('');
   const [scanning, setScanning] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
 
-  const handlePickup = (e: React.FormEvent) => {
+  const handlePickup = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('取件成功！');
-    router.push('/user');
+    
+    if (pickupCode.length < 6) {
+      setError('请输入完整的取件码');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const response = await packagesApi.pickup({ pickupCode });
+
+      if (response.success) {
+        alert('取件成功！');
+        router.push('/user');
+      } else {
+        setError(response.error || '取件失败');
+      }
+    } catch (err) {
+      setError('取件失败，请稍后重试');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -28,12 +52,18 @@ export default function PickupPage() {
               id="pickupCode"
               type="text"
               value={pickupCode}
-              onChange={(e) => setPickupCode(e.target.value)}
+              onChange={(e) => setPickupCode(e.target.value.toUpperCase())}
               placeholder="请输入6位取件码"
               className="w-full px-4 py-3 text-xl text-center tracking-widest border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
               maxLength={6}
             />
           </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
 
           <div className="flex gap-4">
             <button
@@ -45,10 +75,10 @@ export default function PickupPage() {
             </button>
             <button
               type="submit"
+              disabled={pickupCode.length < 6 || loading}
               className="flex-1 btn btn-primary"
-              disabled={pickupCode.length < 6}
             >
-              确认取件
+              {loading ? '取件中...' : '确认取件'}
             </button>
           </div>
         </form>

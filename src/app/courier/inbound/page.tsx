@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { packagesApi } from '@/lib/api-client';
 
 export default function InboundPage() {
   const router = useRouter();
@@ -13,24 +14,38 @@ export default function InboundPage() {
     notes: '',
   });
   const [scanning, setScanning] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('入库成功！取件码: ABC123');
-    router.push('/courier');
+    
+    if (!formData.trackingNumber || !formData.recipientName || !formData.recipientPhone) {
+      setError('请填写必填项');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const response = await packagesApi.create(formData);
+
+      if (response.success && response.data) {
+        alert(`入库成功！取件码: ${response.data.pickupCode}`);
+        router.push('/courier');
+      } else {
+        setError(response.error || '入库失败');
+      }
+    } catch (err) {
+      setError('入库失败，请稍后重试');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const generatePickupCode = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = '';
-    for (let i = 0; i < 6; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
   };
 
   return (
@@ -137,6 +152,12 @@ export default function InboundPage() {
             />
           </div>
 
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
           <div className="flex gap-4 pt-4">
             <button
               type="button"
@@ -147,9 +168,10 @@ export default function InboundPage() {
             </button>
             <button
               type="submit"
+              disabled={loading}
               className="btn btn-primary flex-1"
             >
-              确认入库
+              {loading ? '入库中...' : '确认入库'}
             </button>
           </div>
         </form>
