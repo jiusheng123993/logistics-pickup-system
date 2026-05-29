@@ -4,12 +4,10 @@
  * 统一管理 API 调用
  */
 
-interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
+import type { ApiResponse as ApiResponseType } from '@/types';
+
+// 使用类型定义文件中的类型，同时保持向后兼容
+type ApiResponse<T = any> = ApiResponseType<T>;
 
 /**
  * 通用 API 请求函数
@@ -67,6 +65,38 @@ export const packagesApi = {
   },
 
   /**
+   * 更新快递
+   */
+  update: async (id: string, data: {
+    trackingNumber?: string;
+    recipientName?: string;
+    recipientPhone?: string;
+    status?: string;
+    storageLocation?: string;
+    notes?: string;
+  }): Promise<ApiResponse<any>> => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('id', id);
+    const url = `/api/packages?${searchParams.toString()}`;
+    return request(url, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * 删除快递
+   */
+  delete: async (id: string): Promise<ApiResponse<any>> => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('id', id);
+    const url = `/api/packages?${searchParams.toString()}`;
+    return request(url, {
+      method: 'DELETE',
+    });
+  },
+
+  /**
    * 取件
    */
   pickup: async (data: {
@@ -109,6 +139,52 @@ export const usersApi = {
     
     const url = `/api/users?${searchParams.toString()}`;
     return request(url);
+  },
+
+  /**
+   * 创建用户
+   */
+  create: async (data: {
+    name: string;
+    phone: string;
+    email?: string;
+    password: string;
+    role: string;
+  }): Promise<ApiResponse<any>> => {
+    return request('/api/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * 更新用户
+   */
+  update: async (id: string, data: {
+    name?: string;
+    phone?: string;
+    email?: string;
+    role?: string;
+  }): Promise<ApiResponse<any>> => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('id', id);
+    const url = `/api/users?${searchParams.toString()}`;
+    return request(url, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * 删除用户
+   */
+  delete: async (id: string): Promise<ApiResponse<any>> => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('id', id);
+    const url = `/api/users?${searchParams.toString()}`;
+    return request(url, {
+      method: 'DELETE',
+    });
   },
 };
 
